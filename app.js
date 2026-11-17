@@ -259,8 +259,9 @@ function bindHold(el){
   var t = null, kd = false;
   function start(e){ if(e && e.type === 'pointerdown' && e.button !== 0) return; el.classList.add('on'); clearTimeout(t); t = setTimeout(function(){ el.classList.remove('on'); unlock(); }, 2000); }
   function stop(){ if(t){ clearTimeout(t); t = null; } el.classList.remove('on'); }
-  el.addEventListener('pointerdown', start);
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(n){ el.addEventListener(n, stop); });
+  // 用 pointer capture：按住時畫面若被跑馬燈推動、按鈕移開手指下方，也不會被當成放開（2026-11-17 線上版測到）
+  el.addEventListener('pointerdown', function(e){ try{ el.setPointerCapture(e.pointerId); }catch(x){} start(e); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function(n){ el.addEventListener(n, stop); });
   el.addEventListener('keydown', function(e){ if((e.key === 'Enter' || e.key === ' ') && !kd){ kd = true; e.preventDefault(); start(); } });
   el.addEventListener('keyup', function(e){ if(e.key === 'Enter' || e.key === ' '){ kd = false; stop(); } });
   el.addEventListener('click', function(e){ e.preventDefault(); if(!el.classList.contains('on')) toast('要「按住不放」2 秒喔'); });
